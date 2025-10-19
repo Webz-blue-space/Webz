@@ -1,0 +1,89 @@
+
+
+CREATE TABLE users (
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    address VARCHAR(255),
+    profile_picture_url TEXT,
+    id_or_passport_url TEXT,
+    sarstax_registration_url TEXT,
+    tax_clearance_url TEXT,
+    proof_of_address_url TEXT,
+    trading_license_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE businesses (
+    business_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(user_id),
+    business_name VARCHAR(100) NOT NULL,
+    business_address VARCHAR(255),
+    proof_of_business_url TEXT,
+    business_certificate_url TEXT,
+    certificate_expiry DATE,
+    is_expired BOOLEAN DEFAULT FALSE,
+    cipc_status VARCHAR(50) DEFAULT 'Pending',          -- Pending, Submitted, Registered, Rejected
+    cipc_reference_number VARCHAR(100),
+    cipc_response_message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE cipc_applications (
+    cipc_app_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    business_id UUID REFERENCES businesses(business_id),
+    submission_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'Submitted',             -- Submitted, Under Review, Registered, Failed
+    response_date TIMESTAMP,
+    response_message TEXT
+);
+
+CREATE TABLE funding_applications (
+    application_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    business_id UUID REFERENCES businesses(business_id),
+    user_id UUID REFERENCES users(user_id),
+    program_name VARCHAR(100),
+    status VARCHAR(50) DEFAULT 'Pending',               -- Pending, Approved, Rejected
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE posts (
+    post_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(user_id),
+    content TEXT,
+    image_url TEXT,
+    is_boosted BOOLEAN DEFAULT FALSE,
+    boost_start TIMESTAMP,
+    boost_end TIMESTAMP
+);
+
+CREATE TABLE boost_payments (
+    payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(user_id),
+    post_id UUID REFERENCES posts(post_id),
+    amount_paid NUMERIC(10,2),
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(50) DEFAULT 'Paid',
+    boost_duration_days INT DEFAULT 7,
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE complaints (
+    complaint_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(user_id),
+    business_id UUID REFERENCES businesses(business_id),
+    complaint_text TEXT,
+    status VARCHAR(50) DEFAULT 'Pending',               -- Pending, In Progress, Resolved
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE notifications (
+    notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(user_id),
+    message TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
